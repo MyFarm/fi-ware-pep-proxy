@@ -20,6 +20,7 @@ config.app_port = '80';
 
 config.username = 'pepProxy';
 config.password = 'pepProxy';
+config.admin_token = undefined;
 
 // in seconds
 config.chache_time = 300;
