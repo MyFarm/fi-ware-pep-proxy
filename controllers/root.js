@@ -84,10 +84,12 @@ var Root = (function() {
             if (config.tokens_engine === 'keystone') {
                 req.headers['X-Nick-Name'] = user_info.token.user.id;
                 req.headers['X-Display-Name'] = user_info.token.user.name;
-                req.headers['X-Roles'] = user_info.token.roles.map(function (role) {
+                req.headers['X-Roles'] = (user_info.token.roles || []).map(function (role) {
                     return role.name;
                 }).join(',');
-                req.headers['X-Organizations'] = user_info.token.project.id;
+                if (user_info.token.project) {
+                    req.headers['X-Organizations'] = user_info.token.project.id;
+                }
             } else {
                 req.headers['X-Nick-Name'] = user_info.id;
                 req.headers['X-Display-Name'] = user_info.displayName;
