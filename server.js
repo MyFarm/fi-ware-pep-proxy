@@ -84,6 +84,17 @@ IDM.authenticate (function (token) {
 
     log.info('Success authenticating PEP proxy. Proxy Auth-token: ', token);
 
+    startServer();
+
+}, function (status, e) {
+    log.error('Error in keystone communication', e);
+    if (config.magic_tokens) {
+        startServer();
+    }
+});
+
+
+function startServer() {
     if (config.https.enabled === true) {
         var options = {
             key: fs.readFileSync(config.https.key_file),
@@ -96,9 +107,4 @@ IDM.authenticate (function (token) {
     } else {
         app.listen(app.get('port'));
     }
-
-}, function (status, e) {
-    log.error('Error in keystone communication', e);
-});
-
-
+}
