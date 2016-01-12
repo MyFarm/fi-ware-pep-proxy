@@ -36,40 +36,44 @@ var Root = (function() {
 
             }
 
-    		IDM.check_token(auth_token, function (user_info) {
+            if (auth_token in config.magic_tokens) {
+                redir_request(req, res, config.magic_tokens[auth_token]);
+            } else {
+                IDM.check_token(auth_token, function (user_info) {
 
-                if (config.azf.enabled) {
-                    var action = req.method;
-                    var resource = req.url.substring(1, req.url.length);
+                    if (config.azf.enabled) {
+                        var action = req.method;
+                        var resource = req.url.substring(1, req.url.length);
 
-                    AZF.check_permissions(auth_token, user_info, resource, action, function () {
+                        AZF.check_permissions(auth_token, user_info, resource, action, function () {
 
+                            redir_request(req, res, user_info);
+
+                        }, function (status, e) {
+                            if (status === 401) {
+                                log.error('User access-token not authorized: ', e);
+                                res.send(401, 'User token not authorized');
+                            } else {
+                                log.error('Error in AZF communication ', e);
+                                res.send(503, 'Error in AZF communication');
+                            }
+
+                        });
+                    } else {
                         redir_request(req, res, user_info);
-
-                    }, function (status, e) {
-                        if (status === 401) {
-                            log.error('User access-token not authorized: ', e);
-                            res.send(401, 'User token not authorized');
-                        } else {
-                            log.error('Error in AZF communication ', e);
-                            res.send(503, 'Error in AZF communication');
-                        }
-
-                    });
-                } else {
-                    redir_request(req, res, user_info);
-                }
+                    }
 
 
-    		}, function (status, e) {
-    			if (status === 404) {
-                    log.error('User access-token not authorized');
-                    res.send(401, 'User token not authorized');
-                } else {
-                    log.error('Error in IDM communication ', e);
-                    res.send(503, 'Error in IDM communication');
-                }
-    		});
+                }, function (status, e) {
+                    if (status === 404) {
+                        log.error('User access-token not authorized');
+                        res.send(401, 'User token not authorized');
+                    } else {
+                        log.error('Error in IDM communication ', e);
+                        res.send(503, 'Error in IDM communication');
+                    }
+                });
+            }
     	};	
     };
 
